@@ -3,7 +3,7 @@ FROM ubuntu:latest AS build
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk curl unzip
+    apt-get install -y openjdk-17-jdk curl unzip zip
 
 # Install Gradle
 RUN curl -s "https://get.sdkman.io" | bash && \
@@ -25,7 +25,7 @@ FROM openjdk:17-jdk-slim
 EXPOSE 8080
 
 # Copy the JAR file from the build stage
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY --from=build /app/build/libs/QuizAppV2-1.jar app.jar
 
 # Set the entry point
 ENTRYPOINT ["java", "-jar", "app.jar"]

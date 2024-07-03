@@ -4,23 +4,18 @@ FROM openjdk:21-jdk-slim AS build
 # Set working directory
 WORKDIR /app
 
-# Copy Gradle build files
+FROM ubuntu:latest AS build
+
+RUN apt-get update
+RUN apt-get install openjdk-21-jdk -y
 COPY . .
 
-# Run Gradle build
 RUN ./gradlew bootJar --no-daemon
 
-# Runtime stage
 FROM openjdk:21-jdk-slim
 
-# Set working directory
-WORKDIR /app
-
-# Copy the JAR file from the build stage
-COPY --from=build /app/build/libs/*.jar app.jar
-
-# Expose application port
 EXPOSE 8080
 
-# Set entry point
+COPY --from=build /build/libs/QuizAppV2.jar app.jar
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

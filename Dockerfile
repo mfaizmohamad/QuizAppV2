@@ -10,7 +10,7 @@ COPY pom.xml .
 RUN mvn package
 
 # Runtime stage
-FROM adoptopenjdk:17-jdk-hotspot
+FROM adoptopenjdk/openjdk21:jdk-21.0.0_8-alpine
 
 RUN addgroup dockerusergroup && adduser --ingroup dockerusergroup --disabled-password dockeruser
 

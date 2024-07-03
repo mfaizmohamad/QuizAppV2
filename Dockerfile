@@ -1,31 +1,31 @@
 # Build stage
-FROM ubuntu:latest AS build
-
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk curl unzip zip
-
-# Install Gradle
-RUN curl -s "https://get.sdkman.io" | bash && \
-    bash -c "source /root/.sdkman/bin/sdkman-init.sh && sdk install gradle 7.4.2"
+FROM maven:3.8.1-openjdk-21 AS maven
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/dockeruser/project
 
-# Copy all files
-COPY . .
+# Copy source code and pom.xml
+COPY src src/
+COPY pom.xml .
 
-# Run Gradle build
-RUN bash -c "source /root/.sdkman/bin/sdkman-init.sh && ./gradlew bootJar --no-daemon"
+# Compile and package the application to an executable JAR
+RUN mvn clean package
 
 # Runtime stage
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jdk-focal
 
-# Expose the application port
-EXPOSE 8080
+# Create a non-root user
+RUN addgroup dockerusergroup && adduser --ingroup dockerusergroup --disabled-password dockeruser
 
-# Copy the JAR file from the build stage
-COPY --from=build /app/build/libs/QuizAppV2-1.jar app.jar
+# Set working directory and ownership
+WORKDIR /usr/dockeruser/project-executable
+RUN chown -R dockeruser /usr/dockeruser
+
+# Switch to the non-root user
+USER dockeruser
+
+# Copy the JAR file from the maven stage to the runtime stage
+COPY --chown=dockeruser:dockerusergroup --from=maven /usr/dockeruser/project/target/QuizAppV2.jar /usr/dockeruser/project-executable/
 
 # Set the entry point
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","QuizAppV2.jar"]

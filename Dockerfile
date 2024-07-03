@@ -1,28 +1,35 @@
-# Build stage
-FROM maven:3.8.4-openjdk-17 AS maven
+# Use a base image with Java 21 and Maven/Gradle to build your application
+FROM adoptopenjdk:21-jdk-hotspot AS build
 
-WORKDIR /usr/dockeruser/project
+# Set working directory inside the image
+WORKDIR /app
 
-COPY src src
-COPY pom.xml .
+# Copy Maven/Gradle build files (pom.xml or build.gradle)
+COPY pom.xml ./
+# If using Gradle, use: COPY build.gradle ./
 
-# Compile and package the application to an executable JAR
-RUN mvn package
+# Download dependencies and plugins
+RUN mvn dependency:go-offline
+# For Gradle, use: RUN gradle build --no-daemon
 
-# Runtime stage
-FROM adoptopenjdk/openjdk17:jdk-17.0.2_8-alpine
+# Copy the application source code
+COPY src ./src/
 
-RUN addgroup dockerusergroup && adduser --ingroup dockerusergroup --disabled-password dockeruser
+# Build the application
+RUN mvn package -DskipTests
+# For Gradle, use: RUN gradle build --no-daemon
 
-ARG JAR_FILE=QuizAppV2.jar
+# Use a smaller base image for runtime
+FROM adoptopenjdk:21-jre-hotspot
 
-WORKDIR /usr/dockeruser/project-executable
+# Set working directory inside the image
+WORKDIR /app
 
-RUN chown -R dockeruser /usr/dockeruser
+# Copy the built JAR file from the previous stage
+COPY --from=build /app/target/*.jar app.jar
 
-USER dockeruser
+# Expose the port your app runs on
+EXPOSE 8080
 
-# Copy the JAR file from the maven stage to the current stage
-COPY --chown=dockeruser:dockerusergroup --from=maven /usr/dockeruser/project/target/${JAR_FILE} /usr/dockeruser/project-executable/
-
-ENTRYPOINT ["java", "-jar", "QuizAppV2.jar"]
+# Command to run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

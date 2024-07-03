@@ -1,26 +1,24 @@
-# Use a base image with Java 21 and Maven/Gradle to build your application
-FROM adoptopenjdk:21-jdk-hotspot AS build
+# Use a base image with Java 21 and Maven to build your application
+FROM openjdk:21-jdk-slim AS build
 
 # Set working directory inside the image
 WORKDIR /app
 
-# Copy Maven/Gradle build files (pom.xml or build.gradle)
+# Copy Maven build files (pom.xml)
 COPY pom.xml ./
-# If using Gradle, use: COPY build.gradle ./
 
-# Download dependencies and plugins
+# Download dependencies
+RUN apt-get update && apt-get install -y maven
 RUN mvn dependency:go-offline
-# For Gradle, use: RUN gradle build --no-daemon
 
 # Copy the application source code
 COPY src ./src/
 
 # Build the application
 RUN mvn package -DskipTests
-# For Gradle, use: RUN gradle build --no-daemon
 
 # Use a smaller base image for runtime
-FROM adoptopenjdk:21-jre-hotspot
+FROM openjdk:21-jdk-slim
 
 # Set working directory inside the image
 WORKDIR /app

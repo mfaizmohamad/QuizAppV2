@@ -4,18 +4,28 @@ FROM openjdk:21-jdk-slim AS build
 # Set working directory
 WORKDIR /app
 
-FROM ubuntu:latest AS build
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    maven \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update
-RUN apt-get install openjdk-21-jdk -y
+# Copy all files
 COPY . .
 
-RUN ./gradlew bootJar --no-daemon
+# Build the application with Maven
+RUN mvn clean package
 
+# Final stage
 FROM openjdk:21-jdk-slim
 
+# Set working directory
+WORKDIR /app
+
+# Expose port 8080
 EXPOSE 8080
 
-COPY --from=build /build/libs/QuizAppV2.jar app.jar
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/QuizAppV2-1.jar app.jar
 
+# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

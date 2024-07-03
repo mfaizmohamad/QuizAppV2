@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.8.1-openjdk-21 AS maven
+FROM maven:3.8.1-openjdk-17 AS maven
 
 # Set working directory
 WORKDIR /usr/dockeruser/project

@@ -1,5 +1,5 @@
-# Use a base image with Java 21 and Maven to build your application
-FROM openjdk:21-jdk-slim AS build
+# Use a base image with Java 17 and Maven to build your application
+FROM openjdk:17-jdk-slim AS build
 
 # Set working directory inside the image
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY src ./src/
 RUN mvn package -DskipTests
 
 # Use a smaller base image for runtime
-FROM openjdk:21-jdk-slim
+FROM openjdk:17-jdk-slim
 
 # Set working directory inside the image
 WORKDIR /app

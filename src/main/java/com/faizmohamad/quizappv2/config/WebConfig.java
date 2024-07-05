@@ -24,7 +24,7 @@ public class WebConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://mfaizmohamad.github.io");
-        config.addAllowedOrigin("https://localhost:5173");
+        config.addAllowedOrigin("http://localhost:5173");
          config.addAllowedOrigin("https://mfaizmohamad.github.io/QuizApp_Client");
         config.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
